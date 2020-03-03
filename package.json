@@ -10,7 +10,9 @@
     "test": "mocha spec/app.spec.js",
     "query-db": "psql -f ./query-db.sql > tableTest.txt",
     "migrate-make": "knex migrate:make",
+    "migrate-latest-test": "NODE_ENV=test knex migrate:latest && npm run query-db",
     "migrate-latest": "knex migrate:latest && npm run query-db",
+    "migrate-drop-test": "NODE_ENV=test knex migrate:rollback && npm run query-db",
     "migrate-drop": "knex migrate:rollback && npm run query-db",
     "seed-dev": "knex seed:run",
     "seed-test": "NODE_ENV=test knex seed:run && npm run query-db"

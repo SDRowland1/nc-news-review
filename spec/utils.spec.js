@@ -172,10 +172,111 @@ describe("makeRefObj", () => {
 });
 
 describe("formatComments", () => {
-  xit("returns an empty array if given an empty array", () => {
+  it("returns an empty array if given an empty array", () => {
     const input = [];
     const expected = [];
+
     const actual = formatComments(input);
     expect(actual).to.deep.eql(expected);
+  });
+  it("returns one formatted comment object within an array", () => {
+    const obj = [
+      {
+        body: " I carry a log — yes. Is it funny to you? It is not to me.",
+        belongs_to: "Living in the shadow of a great man",
+        created_by: "icellusedkars",
+        votes: -100,
+        created_at: 1416746163389
+      }
+    ];
+    const ref = { "Living in the shadow of a great man": 1 };
+
+    const actual = formatComments(obj, ref);
+
+    expect(actual[0]).to.contain.keys(
+      "article_id",
+      "author",
+      "body",
+      "votes",
+      "created_at"
+    );
+    expect(actual[0].created_at.toString()).to.equal(
+      new Date(1416746163389).toString()
+    );
+  });
+  it("returns multiple formatted comments within an array", () => {
+    const obj = [
+      {
+        body:
+          "Replacing the quiet elegance of the dark suit and tie with the casual indifference of these muted earth tones is a form of fashion suicide, but, uh, call me crazy — onyou it works.",
+        belongs_to: "Living in the shadow of a great man",
+        created_by: "icellusedkars",
+        votes: 100,
+        created_at: 1448282163389
+      },
+      {
+        body: " I carry a log — yes. Is it funny to you? It is not to me.",
+        belongs_to: "Living in the shadow of a great man",
+        created_by: "icellusedkars",
+        votes: -100,
+        created_at: 1416746163389
+      },
+      {
+        body:
+          "What do you see? I have no idea where this will lead us. This place I speak of, is known as the Black Lodge.",
+        belongs_to: "UNCOVERED: catspiracy to bring down democracy",
+        created_by: "icellusedkars",
+        votes: 16,
+        created_at: 1101386163389
+      }
+    ];
+
+    const ref = {
+      "Living in the shadow of a great man": 1,
+      "UNCOVERED: catspiracy to bring down democracy": 2
+    };
+    const actual = formatComments(obj, ref);
+    expect(actual[0]).to.contain.keys(
+      "article_id",
+      "author",
+      "body",
+      "votes",
+      "created_at"
+    );
+    expect(actual[1]).to.contain.keys(
+      "article_id",
+      "author",
+      "body",
+      "votes",
+      "created_at"
+    );
+    expect(actual[0].created_at.toString()).to.equal(
+      new Date(1448282163389).toString()
+    );
+    expect(actual[1].created_at.toString()).to.equal(
+      new Date(1416746163389).toString()
+    );
+  });
+  it("original comments has not been mutated", () => {
+    const input = [
+      {
+        body: " I carry a log — yes. Is it funny to you? It is not to me.",
+        belongs_to: "Living in the shadow of a great man",
+        created_by: "icellusedkars",
+        votes: -100,
+        created_at: 1416746163389
+      }
+    ];
+    ref = { "Living in the shadow of a great man": 1 };
+    formatComments(input);
+    expect(input).to.eql([
+      {
+        body: " I carry a log — yes. Is it funny to you? It is not to me.",
+        belongs_to: "Living in the shadow of a great man",
+        created_by: "icellusedkars",
+        votes: -100,
+        created_at: 1416746163389
+      }
+    ]);
   });
 });
