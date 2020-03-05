@@ -42,14 +42,42 @@ exports.updateArticleById = (article_id, votes = 0) => {
     });
 };
 
-exports.inputComment = (article_id, comment) => {
-  return connection
-    .insert([
-      { author: comment.username },
-      { article_id: article_id },
-      { votes: 0 },
-      { body: comment.body }
-    ])
-    .into("comments")
-    .returning("*");
+exports.inputComment = (article_id, username, body) => {
+  return connection("comments")
+    .insert([{ author: username, article_id: article_id, body: body }])
+    .returning("*")
+    .then(comment => {
+      return comment[0];
+    });
+};
+
+exports.fetchCommentsByArticle = (
+  article_id,
+  sort_by = "created_at",
+  order = "asc"
+) => {
+  return connection("comments")
+    .select("*")
+    .where("article_id", article_id)
+    .orderBy(sort_by, order)
+    .then(comments => {
+      return comments;
+    });
+};
+
+exports.fetchAllArticles = (sort_by = "created_at", order = "asc") => {
+  return connection("articles")
+    .select(
+      "articles.article_id",
+      "articles.author",
+      "articles.body",
+      "articles.created_at",
+      "title",
+      "topic",
+      "articles.votes"
+    )
+    .count("comments.comment_id AS comment_count")
+    .leftJoin("comments", "comments.article_id", "=", "articles.article_id")
+    .groupBy("articles.article_id")
+    .orderBy(sort_by, order);
 };

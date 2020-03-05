@@ -1,7 +1,11 @@
 process.env.NODE_ENV = "test";
 const connection = require("../db/connection.js");
 const app = require("../app.js");
-const { expect } = require("chai");
+const chai = require("chai");
+const { expect } = chai;
+const sorted = require("chai-sorted");
+chai.use(sorted);
+
 const request = require("supertest");
 
 describe("app", () => {
@@ -24,6 +28,20 @@ describe("app", () => {
               expect(body).to.contain.keys("topics");
               expect(body.topics[0]).to.contain.keys("slug", "description");
             });
+        });
+      });
+      describe("BAD METHODS", () => {
+        it("status:405 method not allowed", () => {
+          const invalidMethods = ["delete", "patch", "put", "post"];
+          const promiseArr = invalidMethods.map(method => {
+            return request(app)
+              [method]("/api/topics")
+              .expect(405)
+              .then(({ body }) => {
+                expect(body.msg).to.equal("method not allowed");
+              });
+          });
+          return Promise.all(promiseArr);
         });
       });
     });
@@ -56,6 +74,54 @@ describe("app", () => {
       });
     });
     describe("/articles", () => {
+      describe("GET", () => {
+        it("status:200 returns all articles, including each articles comment count", () => {
+          return request(app)
+            .get("/api/articles")
+            .expect(200)
+            .then(({ body: { articles } }) => {
+              expect(articles).to.have.length(12);
+              expect(articles[0]).to.contain.keys("comment_count");
+            });
+        });
+        it("status:200 returns all articles defaulterd to be ordered by created_at", () => {
+          return request(app)
+            .get("/api/articles")
+            .expect(200)
+            .then(({ body: { articles } }) => {
+              expect(articles).to.have.length(12);
+              expect(articles).to.be.sortedBy("created_at");
+            });
+        });
+        it("status:200 returns all articles ordered by specified column", () => {
+          return request(app)
+            .get("/api/articles?sort_by=topic")
+            .expect(200)
+            .then(({ body: { articles } }) => {
+              expect(articles).to.have.length(12);
+              expect(articles).to.be.sortedBy("topic");
+            });
+        });
+        it("status:200 returns all articles ordered by their comment count", () => {
+          return request(app)
+            .get("/api/articles?sort_by=comment_count")
+            .expect(200)
+            .then(({ body: { articles } }) => {
+              console.log(articles);
+              expect(articles).to.have.length(12);
+              expect(articles).to.be.sortedBy("comment_count");
+            });
+        });
+        it("status:200 returns all articles ordered by specified column in descending order", () => {
+          return request(app)
+            .get("/api/articles?sort_by=topic&order=desc")
+            .expect(200)
+            .then(({ body: { articles } }) => {
+              expect(articles).to.have.length(12);
+              expect(articles).to.be.descendingBy("topic");
+            });
+        });
+      });
       describe("/:article_id", () => {
         describe("GET", () => {
           it("status:200 gets one article specified by its id", () => {
@@ -158,26 +224,99 @@ describe("app", () => {
         });
         describe("/comments", () => {
           describe("POST", () => {
-            xit("status:201 posts a new comment", () => {
+            it("status:201 posts a new comment", () => {
               return request(app)
                 .post("/api/articles/1/comments")
                 .send({
-                  username: "stormDennis99",
+                  username: "butter_bridge",
                   body: "yes my son what an article"
                 })
                 .expect(201)
                 .then(({ body }) => {
-                  expect(body.article).to.have.keys(
-                    "comment_id",
+                  expect(body.comment).to.contain.keys(
                     "author",
                     "article_id",
                     "votes",
                     "created_at",
                     "body"
                   );
-                  expect(body.article.comment_id).to.equal("18");
-                  expect(body.article.article_id).to.equal("1");
-                  expect(body.article.author).to.equal("stormDennis99");
+                  expect(body.comment.comment_id).to.equal(19);
+                  expect(body.comment.article_id).to.equal(1);
+                  expect(body.comment.author).to.equal("butter_bridge");
+                });
+            });
+            it("status:400 wrong username data-type", () => {
+              return request(app)
+                .post("/api/articles/1/comments")
+                .send({
+                  username: 23,
+                  body: "yes my son what an article"
+                })
+                .expect(400)
+                .then(error => {
+                  expect(error.text).to.equal("bad request");
+                });
+            });
+            it("status 400: wrong article_id datatype", () => {
+              return request(app)
+                .post("/api/articles/gerb/comments")
+                .send({
+                  username: "butter_bridge",
+                  body: "hahahaha"
+                })
+                .expect(400)
+                .then(error => {
+                  expect(error.text).to.equal("bad request");
+                });
+            });
+            it("status 400: missing column", () => {
+              return request(app)
+                .post("/api/articles/gerb/comments")
+                .send({
+                  username: "butter_bridge"
+                })
+                .expect(400)
+                .then(error => {
+                  expect(error.text).to.equal("bad request");
+                });
+            });
+          });
+          describe("GET", () => {
+            it("status 200: gets all comments with specified article_id", () => {
+              return request(app)
+                .get("/api/articles/1/comments")
+                .expect(200)
+                .then(({ body }) => {
+                  expect(body.comments).to.have.length(13);
+                });
+            });
+            it("status 200: gets all comments defaulted to be ordered by created_at", () => {
+              return request(app)
+                .get("/api/articles/1/comments")
+
+                .expect(200)
+                .then(({ body }) => {
+                  expect(body.comments).to.have.length(13);
+                  expect(body.comments).to.be.sortedBy("created_at");
+                });
+            });
+            it("status 200: gets all comments ordered by specified column", () => {
+              return request(app)
+                .get("/api/articles/1/comments?sort_by=author")
+
+                .expect(200)
+                .then(({ body }) => {
+                  expect(body.comments).to.have.length(13);
+                  expect(body.comments).to.be.sortedBy("author");
+                });
+            });
+            it("status 200: gets all comments ordered by author descending", () => {
+              return request(app)
+                .get("/api/articles/1/comments?sort_by=author&order=desc")
+                .expect(200)
+                .then(({ body }) => {
+                  expect(body.comments).to.have.length(13);
+                  expect(body.comments).to.be.descendingBy("author");
                 });
             });
           });
