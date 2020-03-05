@@ -38,15 +38,19 @@ exports.getCommentsByArticle = (req, res, next) => {
   const { article_id } = req.params;
   const { sort_by, order } = req.query;
 
-  return fetchCommentsByArticle(article_id, sort_by, order).then(comments => {
-    res.status(200).send({ comments });
-  });
+  return fetchCommentsByArticle(article_id, sort_by, order)
+    .then(comments => {
+      res.status(200).send({ comments });
+    })
+    .catch(next);
 };
 
 exports.getAllArticles = (req, res, next) => {
-  const { sort_by, order } = req.query;
+  const { sort_by, order, author } = req.query;
 
-  return fetchAllArticles(sort_by, order).then(articles => {
-    res.status(200).send({ articles });
-  });
+  return fetchAllArticles(sort_by, order, author)
+    .then(articles => {
+      res.status(200).send({ articles });
+    })
+    .catch(next);
 };
