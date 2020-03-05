@@ -1,5 +1,4 @@
 exports.up = function(knex) {
-  console.log("creating table articles...");
   return knex.schema.createTable("articles", function(tableBuilder) {
     tableBuilder.increments("article_id").primary();
     tableBuilder.string("title").notNullable();
@@ -12,6 +11,5 @@ exports.up = function(knex) {
 };
 
 exports.down = function(knex) {
-  console.log("removing table articles...");
   return knex.schema.dropTable("articles");
 };

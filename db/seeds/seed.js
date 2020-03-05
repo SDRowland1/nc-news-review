@@ -18,8 +18,6 @@ exports.seed = function(knex) {
       return Promise.all([topicsInsertions, usersInsertions]).then(() => {
         const formattedArticles = formatDates(articleData);
 
-        console.log(formattedArticles);
-
         return knex
           .insert(formattedArticles)
           .into("articles")
