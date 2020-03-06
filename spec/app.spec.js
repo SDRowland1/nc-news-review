@@ -177,7 +177,7 @@ describe("app", () => {
             .get("/api/articles?order=gerb")
             .expect(400);
         });
-        it.only("status:404 author query not found", () => {
+        it("status:404 author query not found", () => {
           return request(app)
             .get("/api/articles?author=stormDennis")
             .expect(404);
@@ -187,16 +187,15 @@ describe("app", () => {
             .get("/api/articles?topic=flerb")
             .expect(404);
         });
-        it.only("status: 200 returns an empty array if author exists but does not have any articles", () => {
+        it("status: 200 returns an empty array if author exists but does not have any articles", () => {
           return request(app)
             .get("/api/articles?author=lurker")
             .expect(200)
             .then(({ body }) => {
-              console.log(body);
               expect(body.articles.length).to.equal(0);
             });
         });
-        it.only("status: 200 returns an empty array if topic exists but does not have any articles", () => {
+        it("status: 200 returns an empty array if topic exists but does not have any articles", () => {
           return request(app)
             .get("/api/articles?topic=paper")
             .expect(200)
