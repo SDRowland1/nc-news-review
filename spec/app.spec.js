@@ -390,6 +390,17 @@ describe("app", () => {
                   expect(error.text).to.equal("bad request");
                 });
             });
+            it("status 404: article id not found", () => {
+              return request(app)
+                .post("/api/articles/100000000/comments")
+                .send({
+                  username: "butter_bridge"
+                })
+                .expect(404)
+                .then(error => {
+                  expect(error.text).to.equal("not found");
+                });
+            });
           });
           describe("GET", () => {
             it("status 200: gets all comments with specified article_id", () => {

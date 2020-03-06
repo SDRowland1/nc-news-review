@@ -5,6 +5,7 @@ exports.handleCustomErrors = (err, req, res, next) => {
 exports.handlePsqlErrors = (err, req, res, next) => {
   if (err.code === "22P02" || err.code === "23503" || err.code === "42703")
     res.status(400).send("bad request");
+  if (err.code === "23502") res.status(404).send("not found");
   else next(err);
 };
 
@@ -13,6 +14,5 @@ exports.handle405s = (req, res, next) => {
 };
 
 exports.handle500s = (err, req, res, next) => {
-  console.log(err);
   res.status(500).send({ msg: "internal server error" });
 };
