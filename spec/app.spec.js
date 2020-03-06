@@ -74,7 +74,7 @@ describe("app", () => {
       });
     });
     describe("/articles", () => {
-      describe("GET", () => {
+      describe.only("GET", () => {
         it("status:200 returns all articles, including each articles comment count", () => {
           return request(app)
             .get("/api/articles")
@@ -82,6 +82,8 @@ describe("app", () => {
             .then(({ body: { articles } }) => {
               expect(articles).to.have.length(12);
               expect(articles[0]).to.contain.keys("comment_count");
+              expect(articles[0].article_id).to.equal(1);
+              expect(articles[0].comment_count).to.equal("13");
             });
         });
         it("status:200 returns all articles defaulterd to be ordered by created_at", () => {
@@ -90,7 +92,7 @@ describe("app", () => {
             .expect(200)
             .then(({ body: { articles } }) => {
               expect(articles).to.have.length(12);
-              expect(articles).to.be.sortedBy("created_at");
+              expect(articles).to.be.descendingBy("created_at");
             });
         });
         it("status:200 returns all articles ordered by specified column", () => {
@@ -99,7 +101,7 @@ describe("app", () => {
             .expect(200)
             .then(({ body: { articles } }) => {
               expect(articles).to.have.length(12);
-              expect(articles).to.be.sortedBy("topic");
+              expect(articles).to.be.descendingBy("topic");
             });
         });
         it("status:200 returns all articles ordered by their comment count", () => {
@@ -107,9 +109,13 @@ describe("app", () => {
             .get("/api/articles?sort_by=comment_count")
             .expect(200)
             .then(({ body: { articles } }) => {
-              console.log(articles);
+              const articleCountNum = articles.map(article => {
+                article.comment_count = Number(article.comment_count);
+                return article;
+              });
+
               expect(articles).to.have.length(12);
-              expect(articles).to.be.sortedBy("comment_count");
+              expect(articleCountNum).to.be.descendingBy("comment_count");
             });
         });
         it("status:200 returns all articles ordered by specified column in descending order", () => {
@@ -120,6 +126,39 @@ describe("app", () => {
               expect(articles).to.have.length(12);
               expect(articles).to.be.descendingBy("topic");
             });
+        });
+        it("status:200 returns all articles ordered by specified column in descending order", () => {
+          return request(app)
+            .get("/api/articles?sort_by=author")
+            .expect(200)
+            .then(({ body: { articles } }) => {
+              expect(articles).to.have.length(12);
+              expect(articles).to.be.descendingBy("author");
+              expect(articles[0].author).to.equal("rogersop");
+            });
+        });
+        // it("status:200 returns all articles from butter_bridge", () => {
+        //   return request(app)
+        //     .get("/api/articles?author=butter_bridge")
+        //     .expect(200)
+        //     .then(({ body: { articles } }) => {
+
+        //     });
+        // });
+        it("status:400 sort_by column does not exist", () => {
+          return request(app)
+            .get("/api/articles?sort_by=stormDennis")
+            .expect(400);
+        });
+        it("status:400 order query is invalid", () => {
+          return request(app)
+            .get("/api/articles?order=gerb")
+            .expect(400);
+        });
+        it("status:404 author query not found", () => {
+          return request(app)
+            .get("/api/articles?author=stormDennis")
+            .expect(404);
         });
       });
       describe("/:article_id", () => {
@@ -319,6 +358,81 @@ describe("app", () => {
                   expect(body.comments).to.be.descendingBy("author");
                 });
             });
+            it("status 400: sort_by column does not exist", () => {
+              return request(app)
+                .get("/api/articles/1/comments?sort_by=flerb")
+                .expect(400);
+            });
+            it("status:400 order query is invalid", () => {
+              return request(app)
+                .get("/api/articles/1/comments?order=gerb")
+                .expect(400);
+            });
+          });
+        });
+      });
+    });
+    describe("/comments", () => {
+      describe("/:commend_id", () => {
+        describe("PATCH", () => {
+          it("status 200: increments a specified comments votes by given amount", () => {
+            return request(app)
+              .patch("/api/comments/1")
+              .send({ inc_votes: 10 })
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.comment.votes).to.equal(26);
+              });
+          });
+          it("status:400 invalid ID", () => {
+            return request(app)
+              .patch("/api/comments/gerb")
+              .send({ inc_votes: 20 })
+              .expect(400)
+              .then(err => {
+                expect(err.text).to.equal("bad request");
+              });
+          });
+          it("status: 404 comment_id does not exist", () => {
+            return request(app)
+              .patch("/api/comments/92929")
+              .send({ votes: 20 })
+              .expect(404)
+              .then(err => {
+                expect(err.text).to.equal("comment_id does not exist");
+              });
+          });
+          it("status:200 ignores additional values", () => {
+            return request(app)
+              .patch("/api/comments/1")
+              .send({ inc_votes: 20, bananas: "yes" })
+              .expect(200);
+          });
+          it("status:200 returns no changes to specified article", () => {
+            return request(app)
+              .patch("/api/comments/1")
+              .send({})
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.comment.votes).to.equal(16);
+              });
+          });
+        });
+        describe("DELETE", () => {
+          it("status 204: deletes comment specified by its id", () => {
+            return request(app)
+              .delete("/api/comments/1")
+              .expect(204)
+              .then(() => {
+                return request(app)
+                  .get("/api/comments/1")
+                  .expect(404);
+              });
+          });
+          it("status 404: comment id does not exist", () => {
+            return request(app)
+              .delete("/api/comments/99999")
+              .expect(404);
           });
         });
       });

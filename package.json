@@ -32,7 +32,8 @@
     "chai-sorted": "^0.2.0",
     "express": "^4.17.1",
     "knex": "^0.20.10",
-    "pg": "^7.18.2"
+    "pg": "^7.18.2",
+    "sams-chai-sorted": "^1.0.2"
   },
   "devDependencies": {
     "chai": "^4.2.0",
