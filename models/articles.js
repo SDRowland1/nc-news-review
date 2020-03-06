@@ -68,11 +68,35 @@ exports.fetchCommentsByArticle = (
     });
 };
 
-exports.fetchAllArticles = (sort_by = "created_at", order = "desc", author) => {
+exports.fetchAllArticles = (
+  sort_by = "created_at",
+  order = "desc",
+  author,
+  topic
+) => {
   if (order !== "asc" && order !== "desc") {
     return Promise.reject({ status: 400, msg: "bad request" });
   }
-
+  function checkIfAuthorExists(author) {
+    if (author)
+      return connection("users")
+        .select("*")
+        .where("username", author)
+        .then(result => {
+          if (result.length === 0)
+            return Promise.reject({ status: 404, msg: "author not found" });
+        });
+  }
+  function checkIfTopicExists(topic) {
+    if (topic)
+      return connection("topics")
+        .select("*")
+        .where("slug", topic)
+        .then(result => {
+          if (!result.length)
+            return Promise.reject({ status: 404, msg: "topic not found" });
+        });
+  }
   return connection("articles")
     .select(
       "articles.article_id",
@@ -88,13 +112,25 @@ exports.fetchAllArticles = (sort_by = "created_at", order = "desc", author) => {
         queryBuilder.where("articles.author", "=", author);
       }
     })
+    .modify(queryBuilder => {
+      if (topic) {
+        queryBuilder.where("articles.topic", "=", topic);
+      }
+    })
     .count("comments.comment_id AS comment_count")
     .leftJoin("comments", "comments.article_id", "=", "articles.article_id")
     .groupBy("articles.article_id")
     .orderBy(sort_by, order)
     .then(articles => {
-      if (!articles.length) {
-        return Promise.reject({ status: 404, msg: "not found" });
-      } else return articles;
+      if (articles.length === 0) {
+        return Promise.all([
+          [],
+          checkIfAuthorExists(author),
+          checkIfTopicExists(topic)
+        ]);
+      } else return [articles];
+    })
+    .then(([articles]) => {
+      return articles;
     });
 };

@@ -1,4 +1,6 @@
 const commentsRouter = require("express").Router();
+
+const { handle405s } = require("../errors/index");
 const {
   patchCommentById,
   deleteCommentById
@@ -7,6 +9,7 @@ const {
 commentsRouter
   .route("/:comment_id")
   .patch(patchCommentById)
-  .delete(deleteCommentById);
+  .delete(deleteCommentById)
+  .all(handle405s);
 
 module.exports = commentsRouter;

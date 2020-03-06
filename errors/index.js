@@ -9,9 +9,10 @@ exports.handlePsqlErrors = (err, req, res, next) => {
 };
 
 exports.handle405s = (req, res, next) => {
-  res.status(405).send({ msg: "method not allowed" });
+  res.status(405).send({ msg: "method not found" });
 };
 
 exports.handle500s = (err, req, res, next) => {
+  console.log(err);
   res.status(500).send({ msg: "internal server error" });
 };

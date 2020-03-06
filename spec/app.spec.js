@@ -38,7 +38,7 @@ describe("app", () => {
               [method]("/api/topics")
               .expect(405)
               .then(({ body }) => {
-                expect(body.msg).to.equal("method not allowed");
+                expect(body.msg).to.equal("method not found");
               });
           });
           return Promise.all(promiseArr);
@@ -70,11 +70,25 @@ describe("app", () => {
                 expect(err.text).to.equal("username not found");
               });
           });
+          describe("BAD METHODS", () => {
+            it("status:405 method not found", () => {
+              const invalidMethods = ["delete", "patch", "put", "post"];
+              const promiseArr = invalidMethods.map(method => {
+                return request(app)
+                  [method]("/api/users/rogersop")
+                  .expect(405)
+                  .then(({ body }) => {
+                    expect(body.msg).to.equal("method not found");
+                  });
+              });
+              return Promise.all(promiseArr);
+            });
+          });
         });
       });
     });
     describe("/articles", () => {
-      describe.only("GET", () => {
+      describe("GET", () => {
         it("status:200 returns all articles, including each articles comment count", () => {
           return request(app)
             .get("/api/articles")
@@ -137,14 +151,22 @@ describe("app", () => {
               expect(articles[0].author).to.equal("rogersop");
             });
         });
-        // it("status:200 returns all articles from butter_bridge", () => {
-        //   return request(app)
-        //     .get("/api/articles?author=butter_bridge")
-        //     .expect(200)
-        //     .then(({ body: { articles } }) => {
-
-        //     });
-        // });
+        it("status:200 returns all articles from butter_bridge", () => {
+          return request(app)
+            .get("/api/articles?author=butter_bridge")
+            .expect(200)
+            .then(({ body: { articles } }) => {
+              expect(articles).to.have.length(3);
+            });
+        });
+        it("status:200 returns all topics of mitch", () => {
+          return request(app)
+            .get("/api/articles?topic=mitch")
+            .expect(200)
+            .then(({ body: { articles } }) => {
+              expect(articles).to.have.length(11);
+            });
+        });
         it("status:400 sort_by column does not exist", () => {
           return request(app)
             .get("/api/articles?sort_by=stormDennis")
@@ -155,10 +177,46 @@ describe("app", () => {
             .get("/api/articles?order=gerb")
             .expect(400);
         });
-        it("status:404 author query not found", () => {
+        it.only("status:404 author query not found", () => {
           return request(app)
             .get("/api/articles?author=stormDennis")
             .expect(404);
+        });
+        it("status:404 topic query not found", () => {
+          return request(app)
+            .get("/api/articles?topic=flerb")
+            .expect(404);
+        });
+        it.only("status: 200 returns an empty array if author exists but does not have any articles", () => {
+          return request(app)
+            .get("/api/articles?author=lurker")
+            .expect(200)
+            .then(({ body }) => {
+              console.log(body);
+              expect(body.articles.length).to.equal(0);
+            });
+        });
+        it.only("status: 200 returns an empty array if topic exists but does not have any articles", () => {
+          return request(app)
+            .get("/api/articles?topic=paper")
+            .expect(200)
+            .then(({ body }) => {
+              expect(body.articles.length).to.equal(0);
+            });
+        });
+        describe("BAD METHODS", () => {
+          it("status:405 method not found", () => {
+            const invalidMethods = ["delete", "patch", "put", "post"];
+            const promiseArr = invalidMethods.map(method => {
+              return request(app)
+                [method]("/api/articles")
+                .expect(405)
+                .then(({ body }) => {
+                  expect(body.msg).to.equal("method not found");
+                });
+            });
+            return Promise.all(promiseArr);
+          });
         });
       });
       describe("/:article_id", () => {
@@ -211,7 +269,7 @@ describe("app", () => {
           it("status:200 updates the votes by the number given, and returns article", () => {
             return request(app)
               .patch("/api/articles/1")
-              .send({ votes: 20 })
+              .send({ inc_votes: 20 })
               .expect(200)
               .then(({ body }) => {
                 expect(body.article.votes).to.equal(120);
@@ -221,7 +279,7 @@ describe("app", () => {
           it("status: 404 article_id does not exist", () => {
             return request(app)
               .patch("/api/articles/92929")
-              .send({ votes: 20 })
+              .send({ inc_votes: 20 })
               .expect(404)
               .then(err => {
                 expect(err.text).to.equal("article_id does not exist");
@@ -230,7 +288,7 @@ describe("app", () => {
           it("status:400 invalid ID", () => {
             return request(app)
               .patch("/api/articles/gerb")
-              .send({ votes: 20 })
+              .send({ inc_votes: 20 })
               .expect(400)
               .then(err => {
                 expect(err.text).to.equal("bad request");
@@ -239,7 +297,7 @@ describe("app", () => {
           it("status:400 invalid patch request", () => {
             return request(app)
               .patch("/api/articles/1")
-              .send({ votes: "storm dennis" })
+              .send({ inc_votes: "storm dennis" })
               .expect(400)
               .then(err => {
                 expect(err.text).to.equal("bad request");
@@ -248,7 +306,7 @@ describe("app", () => {
           it("status:200 ignores additional values", () => {
             return request(app)
               .patch("/api/articles/1")
-              .send({ votes: 20, bananas: "yes" })
+              .send({ inc_votes: 20, bananas: "yes" })
               .expect(200);
           });
           it("status:200 returns no changes to specified article", () => {
@@ -259,6 +317,20 @@ describe("app", () => {
               .then(({ body }) => {
                 expect(body.article.votes).to.equal(100);
               });
+          });
+        });
+        describe("BAD METHODS", () => {
+          it("status:405 method not found", () => {
+            const invalidMethods = ["delete", "put", "post"];
+            const promiseArr = invalidMethods.map(method => {
+              return request(app)
+                [method]("/api/articles/1")
+                .expect(405)
+                .then(({ body }) => {
+                  expect(body.msg).to.equal("method not found");
+                });
+            });
+            return Promise.all(promiseArr);
           });
         });
         describe("/comments", () => {
@@ -424,15 +496,32 @@ describe("app", () => {
               .delete("/api/comments/1")
               .expect(204)
               .then(() => {
-                return request(app)
-                  .get("/api/comments/1")
-                  .expect(404);
+                return connection("comments")
+                  .select("*")
+                  .where("comment_id", "1")
+                  .then(comment => {
+                    expect(comment.length).to.equal(0);
+                  });
               });
           });
           it("status 404: comment id does not exist", () => {
             return request(app)
               .delete("/api/comments/99999")
               .expect(404);
+          });
+        });
+        describe("BAD METHODS", () => {
+          it("status:405 method not found", () => {
+            const invalidMethods = ["put", "post"];
+            const promiseArr = invalidMethods.map(method => {
+              return request(app)
+                [method]("/api/comments/1")
+                .expect(405)
+                .then(({ body }) => {
+                  expect(body.msg).to.equal("method not found");
+                });
+            });
+            return Promise.all(promiseArr);
           });
         });
       });
