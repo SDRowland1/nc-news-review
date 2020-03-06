@@ -407,7 +407,7 @@ describe("app", () => {
                 .expect(200)
                 .then(({ body }) => {
                   expect(body.comments).to.have.length(13);
-                  expect(body.comments).to.be.sortedBy("created_at");
+                  expect(body.comments).to.be.descendingBy("created_at");
                 });
             });
             it("status 200: gets all comments ordered by specified column", () => {
@@ -417,7 +417,7 @@ describe("app", () => {
                 .expect(200)
                 .then(({ body }) => {
                   expect(body.comments).to.have.length(13);
-                  expect(body.comments).to.be.sortedBy("author");
+                  expect(body.comments).to.be.descendingBy("author");
                 });
             });
             it("status 200: gets all comments ordered by author descending", () => {

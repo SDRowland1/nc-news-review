@@ -54,7 +54,7 @@ exports.inputComment = (article_id, username, body) => {
 exports.fetchCommentsByArticle = (
   article_id,
   sort_by = "created_at",
-  order = "asc"
+  order = "desc"
 ) => {
   if (order !== "asc" && order !== "desc") {
     return Promise.reject({ status: 400, msg: "bad request" });
