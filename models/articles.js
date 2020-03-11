@@ -43,6 +43,8 @@ exports.updateArticleById = (article_id, votes = 0) => {
 };
 
 exports.inputComment = (article_id, username, body) => {
+  if (typeof username !== "string")
+    return Promise.reject({ status: 400, msg: "username not supported" });
   return connection("comments")
     .insert([{ author: username, article_id: article_id, body: body }])
     .returning("*")

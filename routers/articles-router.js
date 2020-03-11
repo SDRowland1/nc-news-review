@@ -20,7 +20,10 @@ articlesRouter
   .patch(patchArticleById)
   .all(handle405s);
 
-articlesRouter.post("/:article_id/comments", postCommentOnArticle);
-articlesRouter.get("/:article_id/comments", getCommentsByArticle).all;
+articlesRouter
+  .route("/:article_id/comments")
+  .post(postCommentOnArticle)
+  .get(getCommentsByArticle)
+  .all(handle405s);
 
 module.exports = articlesRouter;

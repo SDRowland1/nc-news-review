@@ -23,5 +23,58 @@
         }
       ]
     }
+  },
+  "GET /api/articles/:article_id": {
+    "description": "serves a single article chosen by the specific article_id, including the comment count",
+    "queries": [],
+    "expampleResponse": {
+      "article": [
+        {
+          "title": "Seafood substitutions are increasing",
+          "topic": "cooking",
+          "author": "weegembump",
+          "body": "Text from the article..",
+          "created_at": 1527695953341,
+          "comment-count": "0"
+        }
+      ]
+    }
+  },
+  "PATCH /api/articles/:article_id": {
+    "description": "increments a chosen article by its votes",
+    "queries": [],
+    "expampleResponse": {
+      "article": [
+        {
+          "title": "Seafood substitutions are increasing",
+          "topic": "cooking",
+          "author": "weegembump",
+          "body": "Text from the article..",
+          "votes": 21,
+          "created_at": 1527695953341,
+          "comment-count": "0"
+        }
+      ]
+    }
+  },
+  "POST /api/articles/:article_id/comments": {
+    "description": "posts a new comment on chosen article",
+    "queries": [],
+    "expampleResponse": {}
+  },
+  "GET /api/articles/:article_id/comments": {
+    "description": "gets comments from chosen article",
+    "queries": [],
+    "expampleResponse": {}
+  },
+  "PATCH /api/comments/:comment_id": {
+    "description": "increments a chosen comments votes",
+    "queries": [],
+    "expampleResponse": {}
+  },
+  "DELETE /api/comments/:comment_id": {
+    "description": "deletes a chosen comment",
+    "queries": [],
+    "expampleResponse": {}
   }
 }

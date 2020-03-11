@@ -17,6 +17,13 @@ describe("app", () => {
   });
 
   describe("/api", () => {
+    describe("GET", () => {
+      it.only("gets all endpoints", () => {
+        return request(app)
+          .get("/api")
+          .expect(200);
+      });
+    });
     describe("/topics", () => {
       describe("GET", () => {
         it("status:200 gets all topics as an object with a key of topics", () => {
@@ -333,6 +340,20 @@ describe("app", () => {
           });
         });
         describe("/comments", () => {
+          describe("BAD METHODS", () => {
+            it("status:405 method not found", () => {
+              const invalidMethods = ["delete", "put", "patch"];
+              const promiseArr = invalidMethods.map(method => {
+                return request(app)
+                  [method]("/api/articles/1/comments")
+                  .expect(405)
+                  .then(({ body }) => {
+                    expect(body.msg).to.equal("method not found");
+                  });
+              });
+              return Promise.all(promiseArr);
+            });
+          });
           describe("POST", () => {
             it("status:201 posts a new comment", () => {
               return request(app)
@@ -362,10 +383,7 @@ describe("app", () => {
                   username: 23,
                   body: "yes my son what an article"
                 })
-                .expect(400)
-                .then(error => {
-                  expect(error.text).to.equal("bad request");
-                });
+                .expect(400);
             });
             it("status 400: wrong article_id datatype", () => {
               return request(app)
@@ -394,7 +412,8 @@ describe("app", () => {
               return request(app)
                 .post("/api/articles/100000000/comments")
                 .send({
-                  username: "butter_bridge"
+                  username: "butter_bridge",
+                  body: "hello"
                 })
                 .expect(404)
                 .then(error => {
@@ -540,7 +559,10 @@ describe("app", () => {
       it("status:404 path not found", () => {
         return request(app)
           .get("/apf/topics")
-          .expect(404);
+          .expect(404)
+          .then(({ body }) => {
+            expect(body.msg).to.equal("path not found");
+          });
       });
     });
   });

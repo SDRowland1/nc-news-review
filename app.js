@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 const apiRouter = require("./routers/api-router");
 const {
+  handlePathErrors,
   handleCustomErrors,
   handlePsqlErrors,
   handle500s
@@ -9,6 +10,7 @@ const {
 app.use(express.json());
 app.use("/api", apiRouter);
 
+app.use("/*", handlePathErrors);
 app.use(handleCustomErrors);
 app.use(handlePsqlErrors);
 app.use(handle500s);
