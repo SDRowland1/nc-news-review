@@ -15,7 +15,10 @@
     "migrate-drop-test": "NODE_ENV=test knex migrate:rollback && npm run query-db",
     "migrate-drop": "knex migrate:rollback && npm run query-db",
     "seed-dev": "knex seed:run",
-    "seed-test": "NODE_ENV=test knex seed:run && npm run query-db"
+    "seed-test": "NODE_ENV=test knex seed:run && npm run query-db",
+    "seed:prod": "NODE_ENV=production DB_URL=$(heroku config:get https://nc-news-sam-rowland.herokuapp.com/) knex seed:run",
+    "migrate-latest:prod": "NODE_ENV=production DB_URL=$(heroku config:get https://nc-news-sam-rowland.herokuapp.com/) knex migrate:latest",
+    "migrate-rollback:prod": "NODE_ENV=production DB_URL=$(heroku config:get https://nc-news-sam-rowland.herokuapp.com/) knex migrate:rollback"
   },
   "repository": {
     "type": "git",
