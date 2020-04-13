@@ -10,6 +10,13 @@ You are now connected to database "nc_news_test" as user "samrowland1".
  public | users                | table | samrowland1
 (6 rows)
 
+ slug  |          description           
+-------+--------------------------------
+ mitch | The man, the Mitch, the legend
+ cats  | Not dogs
+ paper | what books are made of
+(3 rows)
+
    username    |                                avatar_url                                 |    name    
 ---------------+---------------------------------------------------------------------------+------------
  butter_bridge | https://www.healthytherapies.com/wp-content/uploads/2016/06/Lime3.jpg     | jonny
