@@ -14,19 +14,18 @@ const baseConfig = {
 };
 
 const customConfig = {
-  development: {
+  development: {},
+  connection: {
+    database: "nc_news",
+  },
+  production: {
+    connection: `${DB_URL}?ssl=true`,
+  },
+  test: {
     connection: {
-      database: "nc_news",
-    },
-    production: {
-      connection: `${DB_URL}?ssl=true`,
-    },
-    test: {
-      connection: {
-        database: "nc_news_test",
-        // user,
-        // password
-      },
+      database: "nc_news_test",
+      // user,
+      // password
     },
   },
 };
