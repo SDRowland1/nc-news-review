@@ -1,6 +1,6 @@
 const connection = require("../db/connection");
 
-exports.fetchArticleById = article_id => {
+exports.fetchArticleById = (article_id) => {
   return connection("articles")
     .select(
       "articles.article_id",
@@ -16,11 +16,11 @@ exports.fetchArticleById = article_id => {
     .leftJoin("comments", "comments.article_id", "=", "articles.article_id")
     .groupBy("articles.article_id")
 
-    .then(article => {
+    .then((article) => {
       if (!article.length)
         return Promise.reject({
           status: 404,
-          msg: "article_id does not exist"
+          msg: "article_id does not exist",
         });
       return article[0];
     });
@@ -32,11 +32,11 @@ exports.updateArticleById = (article_id, votes = 0) => {
     .where("article_id", article_id)
     .increment("votes", votes)
     .returning("*")
-    .then(article => {
+    .then((article) => {
       if (!article.length)
         return Promise.reject({
           status: 404,
-          msg: "article_id does not exist"
+          msg: "article_id does not exist",
         });
       return article[0];
     });
@@ -48,7 +48,7 @@ exports.inputComment = (article_id, username, body) => {
   return connection("comments")
     .insert([{ author: username, article_id: article_id, body: body }])
     .returning("*")
-    .then(comment => {
+    .then((comment) => {
       return comment[0];
     });
 };
@@ -65,7 +65,9 @@ exports.fetchCommentsByArticle = (
     .select("*")
     .where("article_id", article_id)
     .orderBy(sort_by, order)
-    .then(comments => {
+    .then((comments) => {
+      if (!comments.length)
+        return Promise.reject({ status: 404, msg: "article_id not found" });
       return comments;
     });
 };
@@ -84,7 +86,7 @@ exports.fetchAllArticles = (
       return connection("users")
         .select("*")
         .where("username", author)
-        .then(result => {
+        .then((result) => {
           if (result.length === 0)
             return Promise.reject({ status: 404, msg: "author not found" });
         });
@@ -94,7 +96,7 @@ exports.fetchAllArticles = (
       return connection("topics")
         .select("*")
         .where("slug", topic)
-        .then(result => {
+        .then((result) => {
           if (!result.length)
             return Promise.reject({ status: 404, msg: "topic not found" });
         });
@@ -109,12 +111,12 @@ exports.fetchAllArticles = (
       "topic",
       "articles.votes"
     )
-    .modify(queryBuilder => {
+    .modify((queryBuilder) => {
       if (author) {
         queryBuilder.where("articles.author", "=", author);
       }
     })
-    .modify(queryBuilder => {
+    .modify((queryBuilder) => {
       if (topic) {
         queryBuilder.where("articles.topic", "=", topic);
       }
@@ -123,12 +125,12 @@ exports.fetchAllArticles = (
     .leftJoin("comments", "comments.article_id", "=", "articles.article_id")
     .groupBy("articles.article_id")
     .orderBy(sort_by, order)
-    .then(articles => {
+    .then((articles) => {
       if (articles.length === 0) {
         return Promise.all([
           [],
           checkIfAuthorExists(author),
-          checkIfTopicExists(topic)
+          checkIfTopicExists(topic),
         ]);
       } else return [articles];
     })
